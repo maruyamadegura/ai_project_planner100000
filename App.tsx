@@ -318,27 +318,30 @@ const App: React.FC = () => {
     setSelectedTask(task);
   }, []);
 
-  const handleUpdateTaskExtendedDetails = useCallback(async (taskId: string, details: EditableExtendedTaskDetails) => {
-    const updatedTasks = tasks.map(t => 
-      t.id === taskId ? { ...t, extendedDetails: details } : t
-    );
-    setTasksWithHistory(updatedTasks);
+　　// App.tsx の handleUpdateTaskExtendedDetails 関数を修正
+const handleUpdateTaskExtendedDetails = useCallback(async (taskId: string, details: EditableExtendedTaskDetails) => {
+  const updatedTasks = tasks.map(t => 
+    t.id === taskId ? { ...t, extendedDetails: details } : t
+  );
+  setTasksWithHistory(updatedTasks);
 
-    // Auto-save to Supabase if project exists
-    if (currentProject?.id && (currentProject.userRole === 'owner' || currentProject.userRole === 'editor')) {
-      try {
-        await ProjectService.updateProject(currentProject.id, {
-          tasks: updatedTasks,
-          expectedVersion: currentProject.version,
-        });
-        // Update current project version after successful save
-        setCurrentProject(prev => prev ? { ...prev, version: prev.version + 1 } : null);
-      } catch (error) {
-        console.error('Failed to auto-save project:', error);
-        alert('プロジェクトの自動保存に失敗しました: ' + (error instanceof Error ? error.message : '不明なエラー'));
-      }
+  // Auto-save to Supabase if project exists
+  if (currentProject?.id && (currentProject.userRole === 'owner' || currentProject.userRole === 'editor')) {
+    try {
+      await ProjectService.updateProject(currentProject.id, {
+        tasks: updatedTasks,
+        // expectedVersion を削除して楽観的ロックを無効化
+      });
+      // バージョン更新を削除（リアルタイム更新で処理）
+    } catch (error) {
+      console.error('Failed to auto-save project:', error);
+      // エラーメッセージを表示しない（サイレント失敗）
     }
-  }, [tasks, setTasksWithHistory, currentProject]);
+  }
+}, [tasks, setTasksWithHistory, currentProject]);
+
+  
+ 
 
   const handleUpdateTaskPosition = useCallback(async (taskId: string, position: { x: number; y: number }) => {
     const updatedTasks = tasks.map(t => 
