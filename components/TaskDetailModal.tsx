@@ -95,6 +95,35 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     setSubStepCardRefs(newRefs);
   }, [extendedDetails.subSteps]);
 
+const handleAutoLayoutSubSteps = useCallback(() => {
+  if (!task.extendedDetails?.subSteps) return;
+
+  const CARD_WIDTH = 200;
+  const CARD_HEIGHT = 100;
+  const HORIZONTAL_SPACING = 250;
+  const VERTICAL_SPACING = 150;
+
+  const updatedSubSteps = task.extendedDetails.subSteps.map((subStep, index) => ({
+    ...subStep,
+    position: {
+      x: 50 + (index % 3) * HORIZONTAL_SPACING,
+      y: 50 + Math.floor(index / 3) * VERTICAL_SPACING,
+    },
+  }));
+
+  const updatedDetails = {
+    ...task.extendedDetails,
+    subSteps: updatedSubSteps,
+  };
+
+  onUpdateTask(task.id, updatedDetails);
+
+  // 追加：自動整列後にコネクタ再計算を呼ぶ
+  calculateConnectors();
+}, [task, onUpdateTask, calculateConnectors]);
+
+  
+
   // Calculate connectors for SubStep flow
   const calculateConnectors = useCallback(() => {
     if (!flowContainerRef.current || subStepCardRefs.size === 0) {
