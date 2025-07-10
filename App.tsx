@@ -365,49 +365,56 @@ const handleUpdateTaskExtendedDetails = useCallback(async (taskId: string, detai
   [tasks, setTasksWithHistory, currentProject]
 );
  
- 
-
- 
-
-  const handleUpdateTaskStatus = useCallback(async (taskId: string, status: TaskStatus) => {
-    const updatedTasks = tasks.map(t => 
+ const handleUpdateTaskStatus = useCallback(
+  async (taskId: string, status: TaskStatus) => {
+    const updatedTasks = tasks.map(t =>
       t.id === taskId ? { ...t, status } : t
     );
     setTasksWithHistory(updatedTasks);
 
-    // Auto-save to Supabase if project exists
+    // Auto-save to Supabase if project exists and user has permissions
     if (currentProject?.id && (currentProject.userRole === 'owner' || currentProject.userRole === 'editor')) {
       try {
         await ProjectService.updateProject(currentProject.id, {
           tasks: updatedTasks,
-          expectedVersion: currentProject.version,
+          // expectedVersion を削除
         });
-        setCurrentProject(prev => prev ? { ...prev, version: prev.version + 1 } : null);
+
+        // version 更新は削除（リアルタイムで処理）
       } catch (error) {
         console.error('Failed to auto-save project:', error);
+        // 通知なし（サイレント失敗）
       }
     }
-  }, [tasks, setTasksWithHistory, currentProject]);
+  },
+  [tasks, setTasksWithHistory, currentProject]
+);
 
-  const handleUpdateTaskConnections = useCallback(async (sourceTaskId: string, nextTaskIds: string[]) => {
-    const updatedTasks = tasks.map(t => 
+const handleUpdateTaskConnections = useCallback(
+  async (sourceTaskId: string, nextTaskIds: string[]) => {
+    const updatedTasks = tasks.map(t =>
       t.id === sourceTaskId ? { ...t, nextTaskIds } : t
     );
     setTasksWithHistory(updatedTasks);
 
-    // Auto-save to Supabase if project exists
+    // Auto-save to Supabase if project exists and user has permissions
     if (currentProject?.id && (currentProject.userRole === 'owner' || currentProject.userRole === 'editor')) {
       try {
         await ProjectService.updateProject(currentProject.id, {
           tasks: updatedTasks,
-          expectedVersion: currentProject.version,
+          // expectedVersion を削除
         });
-        setCurrentProject(prev => prev ? { ...prev, version: prev.version + 1 } : null);
+
+        // バージョン更新も削除（リアルタイムで処理されるため）
       } catch (error) {
         console.error('Failed to auto-save project:', error);
+        // 通知なし（サイレント失敗）
       }
     }
-  }, [tasks, setTasksWithHistory, currentProject]);
+  },
+  [tasks, setTasksWithHistory, currentProject]
+);
+
 
   const handleStartNewProject = useCallback(() => {
     setCurrentProject(null);
