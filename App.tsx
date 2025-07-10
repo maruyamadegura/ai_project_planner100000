@@ -340,28 +340,34 @@ const handleUpdateTaskExtendedDetails = useCallback(async (taskId: string, detai
   }
 }, [tasks, setTasksWithHistory, currentProject]);
 
-  
- 
-
-  const handleUpdateTaskPosition = useCallback(async (taskId: string, position: { x: number; y: number }) => {
-    const updatedTasks = tasks.map(t => 
+ const handleUpdateTaskPosition = useCallback(
+  async (taskId: string, position: { x: number; y: number }) => {
+    const updatedTasks = tasks.map(t =>
       t.id === taskId ? { ...t, position } : t
     );
     setTasksWithHistory(updatedTasks);
 
-    // Auto-save to Supabase if project exists
+    // Auto-save to Supabase if project exists and user has permissions
     if (currentProject?.id && (currentProject.userRole === 'owner' || currentProject.userRole === 'editor')) {
       try {
         await ProjectService.updateProject(currentProject.id, {
           tasks: updatedTasks,
-          expectedVersion: currentProject.version,
+          // expectedVersion を削除
         });
-        setCurrentProject(prev => prev ? { ...prev, version: prev.version + 1 } : null);
+
+        // setCurrentProject で version を更新する処理は削除（リアルタイムで処理するため）
       } catch (error) {
         console.error('Failed to auto-save project:', error);
+        // 通知なし（サイレント失敗）
       }
     }
-  }, [tasks, setTasksWithHistory, currentProject]);
+  },
+  [tasks, setTasksWithHistory, currentProject]
+);
+ 
+ 
+
+ 
 
   const handleUpdateTaskStatus = useCallback(async (taskId: string, status: TaskStatus) => {
     const updatedTasks = tasks.map(t => 
