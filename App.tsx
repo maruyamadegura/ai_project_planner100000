@@ -190,31 +190,38 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Real-time project updates
-  useEffect(() => {
-    if (!currentProject?.id) return;
+ // App.tsx の useEffect でリアルタイム更新を修正
+useEffect(() => {
+  if (!currentProject?.id) return;
 
-    const unsubscribe = ProjectService.subscribeToProjectChanges(
-      currentProject.id,
-      (payload) => {
-        // Handle project updates
-        if (payload.eventType === 'UPDATE') {
-          const updatedProject = payload.new;
-          setTasks(updatedProject.tasks_data || []);
-          setProjectGoal(updatedProject.goal);
-          setTargetDate(updatedProject.target_date);
-          setGanttData(updatedProject.gantt_data);
-        }
-      },
-      () => {
-        // Handle member updates
-        loadProjectMembers();
+  const unsubscribe = ProjectService.subscribeToProjectChanges(
+    currentProject.id,
+    (payload) => {
+      // Handle project updates
+      if (payload.eventType === 'UPDATE') {
+        const updatedProject = payload.new;
+        // 現在編集中でない場合のみ更新を適用
+        setTasks(updatedProject.tasks_data || []);
+        setProjectGoal(updatedProject.goal);
+        setTargetDate(updatedProject.target_date);
+        setGanttData(updatedProject.gantt_data);
+        // currentProjectのバージョンも更新
+        setCurrentProject(prev => prev ? { ...prev, version: updatedProject.version } : null);
       }
-    );
+    },
+    () => {
+      // Handle member updates
+      loadProjectMembers();
+    }
+  );
 
-    return unsubscribe;
-  }, [currentProject?.id]);
+  return unsubscribe;
+}, [currentProject?.id]);
 
+
+
+
+  
   const loadProjectMembers = useCallback(async () => {
     if (!currentProject?.id) return;
     
