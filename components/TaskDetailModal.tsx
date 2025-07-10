@@ -763,6 +763,19 @@ const handleAutoLayoutSubSteps = useCallback(() => {
             </button>
           )}
         </div>
+
+{/* タイトルと削除ボタンのある div のあとに追加 */}
+<div className="text-xs text-slate-500 mt-1 flex items-center justify-between">
+  <span>担当: {subStep.responsible || '未設定'}</span>
+  {subStep.dueDate && (
+    <span className="flex items-center text-orange-600">
+      <ClockIcon className="w-3 h-3 mr-1" />
+      {new Date(subStep.dueDate + 'T00:00:00Z').toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
+    </span>
+  )}
+</div>
+
+
         
         <div className="text-xs text-slate-600 mb-2">
           {subStep.actionItems?.length || 0} アクション
